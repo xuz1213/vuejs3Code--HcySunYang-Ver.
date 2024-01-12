@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+</head>
+<body>
+  <script>
+    // 虚拟DOM其实就是用来描述真实DOM的普通javaScript对象
+    const vnode = {
+      tag: 'div',
+      props: {
+        onClick: () => alert('hello')
+      },
+      children: 'click me'
+    }
+
+    // 组件 function形式
+    const MyComponent = function() {
+      return {
+        tag: 'div',
+        props: {
+          onClick: () => alert('hello component')
+        },
+        children: 'click me component'
+      }
+    }
+
+    // 组件 对象形式
+    const MyComponent2 = {
+      render() {
+        return {
+          tag: 'div',
+          props: {
+            onClick: () => alert('hello component2')
+          },
+          children: 'click me component2'
+        }
+      }
+    }
+
+    const vnode2 = {
+      tag: MyComponent
+    }
+    const vnode3 = {
+      tag: MyComponent2
+    }
+
+    // 渲染器核心代码
+    function mountElement(vnode, container) {
+      const el = document.createElement(vnode.tag)
+      for (const key in vnode.props) {
+        if (/^on/.test(key)) {
+          el.addEventListener(key.substr(2).toLowerCase(), vnode.props[key])
+        }
+      }
+      if (typeof vnode.children === 'string') {
+        el.appendChild(document.createTextNode(vnode.children))
+      } else if (Array.isArray(vnode.children)) {
+        vnode.children.forEach(child => {
+          // 递归
+          render(child, el)
+        });
+      }
+
+      container.appendChild(el)
+    }
+
+    // 渲染组件
+    function mountComponent(vnode, container) {
+      const vnodeReal = vnode.tag()
+      render(vnodeReal, container)
+    }
+
+    // 渲染组件
+    function mountComponent2(vnode, container) {
+      const vnodeReal = vnode.tag.render()
+      render(vnodeReal, container)
+    }
+
+    // 渲染器
+    function render(vnode, container) {
+      if (typeof vnode.tag === 'function') {
+        mountComponent(vnode, container)
+      } else if (typeof vnode.tag === 'object') {
+        mountComponent2(vnode, container)
+      } else {
+        mountElement(vnode, container)
+      }
+    }
+
+    render(vnode, document.body)
+    render(vnode2, document.body)
+    render(vnode3, document.body)
+    console.log(MyComponent2)
+  </script>
+  
+</body>
+</html>
